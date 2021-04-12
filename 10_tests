@@ -21,22 +21,99 @@ def test_create_pet_simple_with_valid_data(name='Билли', animal_type='бу�
     assert status == 200
     assert result['name'] == name
     
-    
+     
+ def test_successfully_set_pet_photo(pet_photo ='images/dog2.jpg'):
+   """Проверяем возможность добавления фотографии в профиль существующего питомца"""
+    pet_photo= os.path.join(os.path.dirname(__file__), pet_photo)
 
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    if len(my_pets['pets']) > 0:
+        status, result = pf.set_photo(auth_key, my_pets['pets'][0]['id'], 'images/dog2.jpg')
+        assert status == 200
+        assert 'pet_photo' in result
+    else:
+        raise Exception("There is no my pets")  
         
- def test_add_new_pet_with_valid_data(name='Барбоскин', animal_type='двортерьер',
-                                     age='4', pet_photo='images/cat1.jpg'):
-    """Проверяем что можно добавить питомца с корректными данными"""
+def test_add_new_pet_without_name(name='', animal_type='бультерьер',
+                                     age='4', pet_photo='images/dog2.jpg'):
+    """Негативный тест на добавление питомца без заполнения обязательного поля 'name'"""
 
-    # Получаем полный путь изображения питомца и сохраняем в переменную pet_photo
     pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
-
-    # Запрашиваем ключ api и сохраняем в переменую auth_key
     _, auth_key = pf.get_api_key(valid_email, valid_password)
 
-    # Добавляем питомца
     status, result = pf.add_new_pet(auth_key, name, animal_type, age, pet_photo)
 
-    # Сверяем полученный ответ с ожидаемым результатом
-    assert status == 200
-    assert result['name'] == name       
+    assert status != 200
+
+def test_add_new_pet_without_type(name='Муська', animal_type='',
+                                     age='4', pet_photo='images/dog2.jpg'):
+    """Негативный тест на добавление питомца без заполнения обязательного поля 'nameanymal type'"""
+
+    pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+
+    status, result = pf.add_new_pet(auth_key, name, animal_type, age, pet_photo)
+
+    assert status != 200
+    
+def test_add_new_pet_without_age(name='Муська', animal_type='бультерьер',
+                                     age='', pet_photo='images/dog2.jpg'):
+    """Негативный тест на добавление питомца без заполнения обязательного поля 'age'"""
+
+    pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+
+    status, result = pf.add_new_pet(auth_key, name, animal_type, age, pet_photo)
+
+    assert status != 200
+    
+def test_add_new_pet_without_photo(name='', animal_type='бультерьер',
+                                     age='4', pet_photo=''):
+    """Негативный тест на добавление питомца без заполнения обязательного поля 'photo'"""
+
+    pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+
+    status, result = pf.add_new_pet(auth_key, name, animal_type, age, pet_photo)
+
+    assert status != 200
+    
+    
+def delete_pet_with_invalid_id():
+    """Негативный тест для проверки возможности удаления питомца с несуществующим id """
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    if len(my_pets['pets']) == 0:
+        pet_id = '1234567891'
+        status, _ = pf.delete_pet(auth_key, pet_id)
+        _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+    
+        assert status != 200
+    else:
+        raise Exception("There is no my pets")
+        
+def test_update_pet_info_with_invalid_id(name='Бублик', animal_type='Кот', age=5):
+    """Проверяем возможность обновления информации о питомце с несуществующим id"""
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    if len(my_pets['pets']) > 0:
+        pet_id = '1234567891'
+        status, result = pf.update_pet_info(auth_key, pet_id, name, animal_type, age)
+
+        assert status != 200
+    else:
+        raise Exception("There is no my pets")
+        
+def test_create_pet_simple_without_name(name='', animal_type='бультерьер',
+                                           age='4', pet_photo=''):
+    """Негативный тест на добавение питомца по методу simple без обязательного параметра 'name'"""
+
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+
+    status, result = pf.create_pet_simple(auth_key, name, animal_type, age)
+
+    assert status != 200
